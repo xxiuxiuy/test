@@ -91,6 +91,31 @@ h1{font-size:clamp(30px,7vw,45px);line-height:1.3;margin:0 0 15px}
 .dimension-name{font-weight:650}
 .dimension-value{font-size:12px;color:#8c7b6d}
 .dimension-desc{font-size:11px;color:var(--muted)}
+  .radar-card{
+  background:linear-gradient(145deg,#f8f5f0,#f2eee9);
+  border:1px solid #ebe4da;
+  border-radius:18px;
+  padding:18px 10px 14px;
+  margin:18px 0 22px;
+}
+#radarChart{
+  width:100%;
+  max-width:430px;
+  margin:0 auto;
+}
+#radarChart svg{
+  display:block;
+  width:100%;
+  height:auto;
+  overflow:visible;
+}
+.radar-caption{
+  text-align:center;
+  color:#9a8e80;
+  font-size:11px;
+  margin-top:4px;
+  letter-spacing:1px;
+}
 .analysis-box{background:#f8f5f0;border-radius:13px;padding:12px 14px;margin-top:8px}
 .analysis-title{font-size:11px;font-weight:700;color:#887766;margin-bottom:5px}
 .analysis-item{font-size:12px;color:#655f56;line-height:1.85;margin-top:5px}
@@ -123,6 +148,9 @@ h1{font-size:clamp(30px,7vw,45px);line-height:1.3;margin:0 0 15px}
   .two-columns{grid-template-columns:1fr}
 }
 </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </head>
 <body>
 <div class="app">
@@ -161,13 +189,14 @@ h1{font-size:clamp(30px,7vw,45px);line-height:1.3;margin:0 0 15px}
       <div class="question-hint">如果是你，你更可能怎么做？</div>
       <div class="options" id="options"></div>
     </div>
-    <div class="quiz-actions">
-      <button class="text-btn" id="prevBtn" onclick="previousQuestion()">← 上一题</button>
-      <button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>下一题 →</button>
-    </div>
+   <div class="quiz-actions">
+  <button class="text-btn" id="prevBtn" onclick="previousQuestion()">← 上一题</button>
+  <span style="font-size:11px;color:#a49c90;">选择后自动进入下一题</span>
+</div>
   </section>
 
   <section class="page" id="resultPage">
+    <div id="resultCapture">
     <div class="result-intro">
       <div class="eyebrow">YOUR PERSONALITY HAS BEEN REVEALED</div>
       <div style="font-size:13px;color:#938779">40个选择 · 拼出你的隐藏人格</div>
@@ -184,11 +213,20 @@ h1{font-size:clamp(30px,7vw,45px);line-height:1.3;margin:0 0 15px}
           <h3 class="section-title">你是一个怎样的人？</h3>
           <p class="section-text" id="resultDescription"></p>
         </div>
-        <div class="section">
-          <h3 class="section-title">你的五维人格画像</h3>
-          <p class="section-text" style="margin-bottom:14px">以下指数反映的是五个维度之间的相对倾向，并非能力评分。每个维度都由你的实际选择共同计算。</p>
-          <div class="dimension-list" id="dimensionList"></div>
-        </div>
+      <div class="section">
+  <h3 class="section-title">你的五维人格画像</h3>
+  <p class="section-text" style="margin-bottom:14px">
+    五个维度共同构成你的性格画像。雷达图展示整体倾向，进度条展示各维度的具体指数。
+  </p>
+
+  <div class="radar-card">
+    </div>
+    <div id="radarChart"></div>
+    <div class="radar-caption">五个维度 · 你的性格倾向分布</div>
+  </div>
+
+  <div class="dimension-list" id="dimensionList"></div>
+</div>
         <div class="section">
           <h3 class="section-title">你的性格关键词</h3>
           <div class="tag-list" id="resultTags"></div>
@@ -219,7 +257,9 @@ h1{font-size:clamp(30px,7vw,45px);line-height:1.3;margin:0 0 15px}
       </div>
     </div>
     <div class="result-actions">
-      <button class="primary-btn" onclick="shareResult()">复制我的人格图鉴</button>
+    <button class="primary-btn" id="saveImageBtn" onclick="saveResultImage()">
+  保存我的人格图鉴图片
+</button>
       <button class="secondary-btn" onclick="restartQuiz()">重新测试</button>
     </div>
     <div class="footer-note">本测试为原创趣味自我探索内容，仅供娱乐与交流，<br>不属于标准化心理测量，也不用于临床诊断。</div>
@@ -462,6 +502,7 @@ const ARCHETYPES={
 ===================================================== */
 let currentQuestion=0;
 let answers=new Array(QUESTIONS.length).fill(null);
+let isAdvancing=false;
 
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
@@ -471,6 +512,7 @@ function showPage(id){
 function startQuiz(){
   currentQuestion=0;
   answers=new Array(QUESTIONS.length).fill(null);
+  isAdvancing=false;
   renderQuestion();
   showPage("quizPage");
 }
@@ -500,10 +542,10 @@ function renderQuestion(){
     const text=document.createElement("span");
     text.textContent=answer.text;
     btn.append(letter,text);
-    btn.addEventListener("click",()=>{
-      answers[currentQuestion]=index;
-      renderQuestion();
-    });
+  btn.disabled=isAdvancing;
+btn.addEventListener("click",()=>{
+  selectAnswer(index);
+});
     container.appendChild(btn);
   });
 
@@ -629,6 +671,8 @@ function getDimensionInterpretation(key,item){
 }
 
 function renderDimensionAnalysis(contributions){
+  document.getElementById("radarChart").innerHTML=
+  buildRadarChart(scores);
   const container=document.getElementById("dimensionAnalysis");
   container.innerHTML="";
 
@@ -668,7 +712,105 @@ function getArchetype(scores){
   const key=ORDER.filter(k=>top.includes(k)).join("-");
   return {key,ranked,top,result:ARCHETYPES[key]||ARCHETYPES["explore-order"]};
 }
+function buildRadarChart(scores){
+  const labels=[
+    "探索好奇",
+    "秩序规划",
+    "社交能量",
+    "情绪感知",
+    "关系共鸣"
+  ];
 
+  const keys=["explore","order","social","feel","connect"];
+  const cx=180, cy=145, radius=88, labelRadius=119;
+
+  const angles=keys.map((_,i)=>(-90+i*72)*Math.PI/180);
+
+  function point(r,angle){
+    return {
+      x:cx+r*Math.cos(angle),
+      y:cy+r*Math.sin(angle)
+    };
+  }
+
+  function polygonPoints(r){
+    return angles.map(angle=>{
+      const p=point(r,angle);
+      return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    }).join(" ");
+  }
+
+  let grid="";
+
+  [20,40,60,80,100].forEach(value=>{
+    grid+=`<polygon points="${polygonPoints(radius*value/100)}"
+      fill="none" stroke="#d9d0c5" stroke-width="1"/>`;
+  });
+
+  let axes="";
+
+  angles.forEach(angle=>{
+    const p=point(radius,angle);
+    axes+=`<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}"
+      stroke="#d9d0c5" stroke-width="1"/>`;
+  });
+
+  const dataPoints=keys.map((key,i)=>{
+    const value=Math.max(0,Math.min(100,scores[key]));
+    const p=point(radius*value/100,angles[i]);
+    return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+  }).join(" ");
+
+  let dots="";
+
+  keys.forEach((key,i)=>{
+    const value=Math.max(0,Math.min(100,scores[key]));
+    const p=point(radius*value/100,angles[i]);
+
+    dots+=`<circle cx="${p.x}" cy="${p.y}" r="4"
+      fill="#8b796d" stroke="#fffefa" stroke-width="2"/>`;
+  });
+
+  let labelHTML="";
+
+  keys.forEach((key,i)=>{
+    const p=point(labelRadius,angles[i]);
+
+    let anchor="middle";
+    if(p.x<cx-15)anchor="end";
+    if(p.x>cx+15)anchor="start";
+
+    const value=scores[key];
+
+    labelHTML+=`
+      <text x="${p.x}" y="${p.y-4}"
+        text-anchor="${anchor}" font-size="11"
+        fill="#74695e" font-weight="600">${labels[i]}</text>
+
+      <text x="${p.x}" y="${p.y+12}"
+        text-anchor="${anchor}" font-size="11"
+        fill="#9a8270">${value}</text>
+    `;
+  });
+
+  return `
+    <svg viewBox="0 0 360 290"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img" aria-label="五维人格雷达图">
+
+      ${grid}
+      ${axes}
+
+      <polygon points="${dataPoints}"
+        fill="#b9a99b" fill-opacity=".30"
+        stroke="#8b796d" stroke-width="2.5"
+        stroke-linejoin="round"/>
+
+      ${dots}
+      ${labelHTML}
+    </svg>
+  `;
+}
 function makePersonalDescription(result,scores){
   const ranked=[...ORDER].sort((a,b)=>scores[b]-scores[a]);
   const strongest=ranked[0];
@@ -824,34 +966,105 @@ function calculateResult(){
 /* =====================================================
    9. 复制分享、重新测试
 ===================================================== */
-async function shareResult(){
-  const text=window.currentResultText||"";
-  if(!text){alert("请先完成测试，再分享结果。");return;}
+async function saveResultImage(){
+  const target=document.getElementById("resultCapture");
+  const button=document.getElementById("saveImageBtn");
+
+  if(!target){
+    alert("没有找到结果页面，请重新生成测试结果。");
+    return;
+  }
+
+  if(typeof html2canvas==="undefined"){
+    alert("图片生成组件加载失败，请检查网络连接后刷新页面再试。");
+    return;
+  }
+
+  const originalText=button.textContent;
+
+  button.disabled=true;
+  button.textContent="正在生成完整人格图鉴…";
+
   try{
-    if(navigator.share){
-      await navigator.share({title:"我的隐藏人格图鉴",text});
-    }else if(navigator.clipboard&&window.isSecureContext){
-      await navigator.clipboard.writeText(text);
-      alert("人格图鉴已复制，快去分享给朋友吧！");
-    }else{
-      fallbackCopy(text);
+    if(document.fonts && document.fonts.ready){
+      await document.fonts.ready;
     }
+
+    const images=Array.from(target.querySelectorAll("img"));
+
+    await Promise.all(images.map(img=>{
+      if(img.complete)return Promise.resolve();
+
+      return new Promise(resolve=>{
+        img.onload=resolve;
+        img.onerror=resolve;
+      });
+    }));
+
+    const canvas=await html2canvas(target,{
+      scale:2,
+      useCORS:true,
+      backgroundColor:"#f8f5f0",
+      logging:false,
+      scrollX:0,
+      scrollY:0,
+      windowWidth:Math.max(
+        document.documentElement.clientWidth,
+        target.scrollWidth
+      ),
+      windowHeight:target.scrollHeight
+    });
+
+    const blob=await new Promise(resolve=>{
+      canvas.toBlob(resolve,"image/png",1);
+    });
+
+    if(!blob)throw new Error("图片生成失败");
+
+    const file=new File(
+      [blob],
+      "我的隐藏人格图鉴.png",
+      {type:"image/png"}
+    );
+
+    if(
+      navigator.canShare &&
+      navigator.canShare({files:[file]}) &&
+      navigator.share
+    ){
+      await navigator.share({
+        files:[file],
+        title:"我的隐藏人格图鉴"
+      });
+    }else{
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement("a");
+
+      link.href=url;
+      link.download="我的隐藏人格图鉴.png";
+      link.style.display="none";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+
+      if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+        window.open(url,"_blank");
+      }
+    }
+
   }catch(error){
-    if(error.name!=="AbortError")fallbackCopy(text);
+    if(error.name!=="AbortError"){
+      console.error("保存人格图鉴失败：",error);
+      alert("图片生成失败，请稍后再试。");
+    }
+  }finally{
+    button.disabled=false;
+    button.textContent=originalText;
   }
 }
-function fallbackCopy(text){
-  const textarea=document.createElement("textarea");
-  textarea.value=text;
-  textarea.style.position="fixed";
-  textarea.style.opacity="0";
-  document.body.appendChild(textarea);
-  textarea.select();
-  try{
-    const ok=document.execCommand("copy");
-    alert(ok?"人格图鉴已复制，快去分享给朋友吧！":"复制失败，请手动复制结果。");
-  }catch(e){alert("复制失败，请手动复制结果。");}
-  document.body.removeChild(textarea);
 }
 function restartQuiz(){
   if(confirm("确定重新开始测试吗？当前测试结果不会保留。"))startQuiz();
