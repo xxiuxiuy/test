@@ -1,0 +1,882 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f8f5f0">
+<title>你的隐藏人格图鉴</title>
+<style>
+:root{
+  --bg:#f8f5f0;--paper:#fffefa;--ink:#292722;
+  --muted:#898477;--line:#eae5dc;--accent:#8b796d;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",
+  "PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7;
+}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #b9a99b;outline-offset:3px}
+.app{width:min(100% - 30px,760px);margin:auto;padding:25px 0 60px}
+.topbar{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:30px;color:var(--muted);font-size:11px;letter-spacing:2px}
+.brand{font-weight:700;color:var(--ink)}
+.page{display:none}
+.page.active{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hero,.question-card,.result-card{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:24px;box-shadow:0 12px 40px rgba(80,65,45,.035)
+}
+.hero{text-align:center;padding:48px 30px}
+.eyebrow{font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:18px}
+.hero-icon{font-size:55px;margin-bottom:12px}
+h1{font-size:clamp(30px,7vw,45px);line-height:1.3;margin:0 0 15px}
+.subtitle{font-size:14px;color:var(--muted);margin:0 auto 25px}
+.feature-row{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:25px 0}
+.feature,.tag{background:#f2eee8;border-radius:30px;padding:6px 12px;
+  font-size:11px;color:#756b60}
+.primary-btn,.next-btn{
+  border:0;border-radius:30px;background:var(--ink);color:white;
+  padding:13px 28px;font-size:13px;font-weight:600
+}
+.primary-btn:hover,.next-btn:hover{background:#51483f}
+.secondary-btn{border:1px solid var(--line);background:transparent;
+  border-radius:30px;padding:12px 24px;color:var(--ink);font-size:13px}
+.note,.footer-note{color:#a49c90;font-size:11px;margin-top:18px}
+.quiz-header{margin-bottom:22px}
+.quiz-meta{display:flex;justify-content:space-between;color:var(--muted);
+  font-size:12px;margin-bottom:9px}
+.progress-track,.dimension-track{height:6px;background:#eae5dd;
+  border-radius:20px;overflow:hidden}
+.progress-bar,.dimension-fill{height:100%;background:#998675;border-radius:20px;
+  transition:width .25s}
+.question-card{padding:30px}
+.question-number{font-size:11px;letter-spacing:2px;color:#a39485;margin-bottom:12px}
+.question-title{font-size:22px;line-height:1.5;margin:0 0 8px}
+.question-hint{font-size:12px;color:var(--muted);margin-bottom:22px}
+.options{display:grid;gap:10px}
+.option{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  border:1px solid var(--line);background:#fffefa;border-radius:13px;
+  padding:14px;font-size:13px;color:var(--ink);line-height:1.6;transition:.15s
+}
+.option:hover{border-color:#b9a99b;background:#faf7f2}
+.option.selected{border-color:#8d7c6d;background:#f2ece5}
+.option-letter{width:25px;height:25px;flex:none;display:grid;place-items:center;
+  border-radius:50%;background:#f1ede7;color:#8d8174;font-size:11px}
+.option.selected .option-letter{background:#8d7c6d;color:white}
+.quiz-actions{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.text-btn{border:0;background:transparent;color:var(--muted);font-size:13px;padding:10px 0}
+.text-btn:disabled,.next-btn:disabled{opacity:.35;cursor:not-allowed}
+.result-intro{text-align:center;margin:12px 0 22px}
+.result-card{overflow:hidden}
+.result-cover{text-align:center;padding:38px 25px 34px;
+  background:linear-gradient(145deg,#f1eae1,#f8f3ec 55%,#eee8e1)}
+.result-emoji{font-size:60px;margin-bottom:10px}
+.result-label{font-size:10px;letter-spacing:3px;color:#8e8174}
+.result-name{font-size:32px;line-height:1.3;margin:8px 0}
+.result-slogan{font-size:14px;color:#766b60;margin:0 auto;max-width:470px}
+.result-body{padding:30px}
+.section{margin-bottom:30px}
+.section:last-child{margin-bottom:0}
+.section-title{font-size:15px;margin:0 0 14px;display:flex;gap:9px;align-items:center}
+.section-title:before{content:"";width:4px;height:15px;background:#a18e7c;border-radius:4px}
+.section-text{font-size:13px;color:#655f56;line-height:1.95;margin:0}
+.dimension-list{display:grid;gap:20px}
+.dimension-item{display:grid;gap:7px}
+.dimension-head{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.dimension-name{font-weight:650}
+.dimension-value{font-size:12px;color:#8c7b6d}
+.dimension-desc{font-size:11px;color:var(--muted)}
+.analysis-box{background:#f8f5f0;border-radius:13px;padding:12px 14px;margin-top:8px}
+.analysis-title{font-size:11px;font-weight:700;color:#887766;margin-bottom:5px}
+.analysis-item{font-size:12px;color:#655f56;line-height:1.85;margin-top:5px}
+.analysis-item strong{color:#423d36}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px}
+.two-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info-box{border-radius:15px;padding:17px}
+.info-box.good{background:#edf1e9}
+.info-box.care{background:#f5eee7}
+.info-box h3{font-size:13px;margin:0 0 9px}
+.info-box p{font-size:12px;line-height:1.85;color:#6d665d;margin:0}
+.evidence-list{display:grid;gap:12px}
+.evidence{border-left:2px solid #d9cbbd;padding:2px 0 2px 13px}
+.evidence-q{font-size:12px;font-weight:650;margin-bottom:4px}
+.evidence-a{font-size:12px;color:var(--muted)}
+.quote-box{background:#f5f1eb;border-radius:16px;text-align:center;
+  padding:22px 18px;color:#756b60;font-size:14px;line-height:1.9}
+.result-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px}
+.result-actions button{min-width:135px}
+.footer-note{text-align:center;line-height:1.8}
+@media(max-width:520px){
+  .app{width:calc(100% - 22px);padding-top:18px}
+  .hero{padding:38px 19px}
+  .question-card{padding:23px 17px}
+  .question-title{font-size:20px}
+  .option{padding:12px;font-size:13px}
+  .result-body{padding:23px 17px}
+  .result-cover{padding:32px 18px}
+  .result-name{font-size:28px}
+  .two-columns{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="brand">HIDDEN PERSONALITY</span>
+    <span>PERSONALITY ATLAS · 01</span>
+  </div>
+
+  <section class="page active" id="homePage">
+    <div class="hero">
+      <div class="eyebrow">A LITTLE JOURNEY TO YOURSELF</div>
+      <div class="hero-icon">✦</div>
+      <h1>你的隐藏人格<br>图鉴</h1>
+      <p class="subtitle">你以为自己只是在做日常选择，<br>但那些小小的瞬间，可能藏着另一个你。</p>
+      <div class="feature-row">
+        <span class="feature">40道生活情境题</span>
+        <span class="feature">5个性格维度</span>
+        <span class="feature">10种隐藏人格</span>
+      </div>
+      <button class="primary-btn" onclick="startQuiz()">开始探索我的人格 →</button>
+      <div class="note">没有标准答案，选择最接近你真实反应的选项即可。</div>
+    </div>
+  </section>
+
+  <section class="page" id="quizPage">
+    <div class="quiz-header">
+      <div class="quiz-meta">
+        <span id="questionCounter">QUESTION 01 / 40</span>
+        <span id="progressText">已完成 0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+    <div class="question-card">
+      <div class="question-number" id="questionNumber">NO. 01</div>
+      <h2 class="question-title" id="questionTitle"></h2>
+      <div class="question-hint">如果是你，你更可能怎么做？</div>
+      <div class="options" id="options"></div>
+    </div>
+    <div class="quiz-actions">
+      <button class="text-btn" id="prevBtn" onclick="previousQuestion()">← 上一题</button>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>下一题 →</button>
+    </div>
+  </section>
+
+  <section class="page" id="resultPage">
+    <div class="result-intro">
+      <div class="eyebrow">YOUR PERSONALITY HAS BEEN REVEALED</div>
+      <div style="font-size:13px;color:#938779">40个选择 · 拼出你的隐藏人格</div>
+    </div>
+    <div class="result-card">
+      <div class="result-cover">
+        <div class="result-emoji" id="resultEmoji"></div>
+        <div class="result-label">YOUR HIDDEN PERSONALITY</div>
+        <h2 class="result-name" id="resultName"></h2>
+        <p class="result-slogan" id="resultSlogan"></p>
+      </div>
+      <div class="result-body">
+        <div class="section">
+          <h3 class="section-title">你是一个怎样的人？</h3>
+          <p class="section-text" id="resultDescription"></p>
+        </div>
+        <div class="section">
+          <h3 class="section-title">你的五维人格画像</h3>
+          <p class="section-text" style="margin-bottom:14px">以下指数反映的是五个维度之间的相对倾向，并非能力评分。每个维度都由你的实际选择共同计算。</p>
+          <div class="dimension-list" id="dimensionList"></div>
+        </div>
+        <div class="section">
+          <h3 class="section-title">你的性格关键词</h3>
+          <div class="tag-list" id="resultTags"></div>
+        </div>
+        <div class="section">
+          <h3 class="section-title">你的闪光点与小盲区</h3>
+          <div class="two-columns">
+            <div class="info-box good">
+              <h3>✦ 你的隐藏优势</h3>
+              <p id="resultStrength"></p>
+            </div>
+            <div class="info-box care">
+              <h3>☁ 偶尔需要留意</h3>
+              <p id="resultBlindspot"></p>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <h3 class="section-title">你的选择透露了什么？</h3>
+          <div class="section-text" style="margin-bottom:13px">下面的分析直接来自你刚才的答题记录。每个维度都会选取至少两道相关题目作为依据。</div>
+          <div id="dimensionAnalysis"></div>
+        </div>
+        <div class="section">
+          <h3 class="section-title">你的几个特别瞬间</h3>
+          <div class="evidence-list" id="evidenceList"></div>
+        </div>
+        <div class="section"><div class="quote-box" id="resultMessage"></div></div>
+      </div>
+    </div>
+    <div class="result-actions">
+      <button class="primary-btn" onclick="shareResult()">复制我的人格图鉴</button>
+      <button class="secondary-btn" onclick="restartQuiz()">重新测试</button>
+    </div>
+    <div class="footer-note">本测试为原创趣味自我探索内容，仅供娱乐与交流，<br>不属于标准化心理测量，也不用于临床诊断。</div>
+  </section>
+</div>
+
+<script>
+/* =====================================================
+   1. 五个维度
+===================================================== */
+const DIMENSIONS = {
+  explore:{
+    name:"探索好奇",desc:"你对新鲜事物、未知体验和不同可能性的开放程度。",
+    high:"你容易被新鲜事物吸引，愿意主动尝试未知。",
+    low:"你更倾向于熟悉和稳定，但这不代表缺乏好奇心。",
+    analysis:"你在选择中表现出对新鲜体验和未知可能性的态度。"
+  },
+  order:{
+    name:"秩序规划",desc:"你处理事情时对计划、效率、安排和确定性的偏好。",
+    high:"你喜欢提前安排，也擅长把事情整理得有条理。",
+    low:"你更看重灵活和自由，不一定需要事事提前规划。",
+    analysis:"你的选择体现了你面对安排、任务和变化时的处理习惯。"
+  },
+  social:{
+    name:"社交能量",desc:"你从互动、交流、表达和群体活动中获得能量的方式。",
+    high:"你容易从交流中获得能量，也愿意主动创造互动。",
+    low:"你更习惯按照自己的节奏社交，独处也能让你恢复状态。",
+    analysis:"你的选择反映了你对交流、互动和独处节奏的偏好。"
+  },
+  feel:{
+    name:"情绪感知",desc:"你对环境氛围、细节变化和自身感受的敏锐程度。",
+    high:"你容易注意到细节和情绪变化，对氛围有较强感知。",
+    low:"你更倾向于理性处理信息，不容易被外界情绪带动。",
+    analysis:"你的选择透露出你观察细节、感受环境和处理情绪的方式。"
+  },
+  connect:{
+    name:"关系共鸣",desc:"你理解他人、回应他人和经营关系的倾向。",
+    high:"你重视关系中的感受，也愿意理解和回应他人。",
+    low:"你更重视独立和边界，不会轻易被关系牵动。",
+    analysis:"你的选择体现了你对他人需求、关系和个人边界的态度。"
+  }
+};
+const ORDER=["explore","order","social","feel","connect"];
+
+/* =====================================================
+   2. 完整40道题
+   每题五个选项分别对应一个主要倾向：
+   A探索好奇 B秩序规划 C社交能量 D情绪感知 E关系共鸣
+===================================================== */
+const RAW_QUESTIONS = [
+["周末突然多出一整天空闲时间，你会？",
+"去一个没去过的地方逛逛","先想好今天要完成哪些事情","约朋友一起出去玩","找个舒服的地方，享受自己的时间","问问身边的人有没有什么想一起做的"],
+["走进一家没来过的餐厅，你通常会？",
+"尝试菜单上最特别的那道菜","先看菜单，想好再点","看看大家都点了什么，顺便聊聊天","观察店里的环境和氛围","留意同行的人喜欢吃什么"],
+["原本计划好的行程突然被取消，你会？",
+"正好，换个计划也不错","重新安排一下接下来的时间","看看有没有朋友可以临时约","顺其自然，给自己一点放空时间","先确认其他人的安排有没有受到影响"],
+["朋友发来一张很有意思的照片，你会？",
+"顺着照片里的内容去搜索更多信息","保存下来，之后有需要再找","马上分享给其他朋友一起讨论","注意照片里一些别人可能忽略的小细节","想到拍照的人当时是什么心情"],
+["面对一个从没接触过的新软件，你会？",
+"直接点进去，边用边探索","先了解功能和操作逻辑","找朋友一起研究","慢慢体验，感受它的设计","看看它能不能帮助身边的人"],
+["出门前发现还有二十分钟，你会？",
+"看看附近有没有值得顺路去的地方","检查东西有没有带齐","发消息问问朋友到哪了","坐下来休息一会儿","顺手帮家里人处理一件小事"],
+["在商场里看到一家很特别的店，你会？",
+"进去看看有什么新鲜东西","先记下位置，有需要再来","拉上同行的人一起进去","先看看装修和整体氛围","想想同行的人会不会也喜欢"],
+["手机里突然出现一个陌生的推荐内容，你会？",
+"点进去看看它还能带来什么新发现","判断一下它有没有实际价值","转发给可能感兴趣的人","留意内容传递出来的情绪","想想推荐它的人为什么会喜欢"],
+["你要开始一项完全陌生的任务，第一步通常是？",
+"先动手试试，过程中再学习","拆分步骤，建立一个计划","找人交流一下思路","先观察整体情况，理清感觉","了解这件事会影响到哪些人"],
+["一个熟悉的地方突然换了全新的布置，你会？",
+"很想探索每个变化的地方","注意哪些东西被调整了","和同行的人讨论变化","感受新环境带来的情绪","观察别人对变化的反应"],
+["收到一份没有提前告诉你的礼物，你会？",
+"好奇它背后有什么特别的故事","先看看礼物是否实用、合心意","兴奋地和送礼的人互动","特别留意包装和细节","很在意送礼的人花了多少心思"],
+["如果要整理一个很久没打开的抽屉，你会？",
+"翻出旧东西时顺便看看有没有新发现","按照类别一件件整理好","叫家人或朋友一起来整理","整理时容易被旧物勾起回忆","想起这些东西和谁有关"],
+["朋友提议临时去看一场演出，你会？",
+"没听过也没关系，想去体验一下","先确认时间、地点和安排","有人一起就很有意思","看看演出风格是不是自己喜欢的","考虑朋友是不是期待这次活动"],
+["在一个陌生的聚会里，你通常会？",
+"主动认识有趣的人，了解新话题","先观察现场情况，再决定怎么参与","找机会加入大家的聊天","留意现场的氛围和情绪变化","关注有没有人落单或不自在"],
+["如果今天的天气和预报完全不同，你会？",
+"临时改变路线，看看天气带来的惊喜","重新调整当天的安排","问问朋友要不要一起改变计划","享受天气变化带来的不同感觉","先确认同行的人有没有受到影响"],
+["看到一本封面很吸引你的书，你会？",
+"翻开看看，可能会发现新兴趣","先读简介和目录","问问有没有人读过","感受文字和封面传递的情绪","想想这本书适不适合推荐给某个人"],
+["当别人向你介绍一个新爱好时，你会？",
+"想马上试试看","先了解需要投入多少时间和精力","希望能和对方一起体验","判断自己是否真的喜欢这种感觉","考虑它能不能成为共同话题"],
+["你发现常走的路线旁边多了一条小路，你会？",
+"走进去看看通向哪里","先判断走这条路是否方便","问同行的人要不要一起走","观察小路周围的环境","考虑同行的人走这条路是否舒服"],
+["临近假期，你最先想到的是？",
+"有没有值得探索的新目的地","怎么安排时间最合理","有没有朋友可以一起出发","希望假期能让自己放松下来","想和重要的人一起留下回忆"],
+["当你发现一个有趣的小众品牌时，你会？",
+"继续挖掘它还有什么特别的产品","看看产品信息和实际评价","分享给可能喜欢的朋友","关注它的设计风格和表达","想想谁收到它会很开心"],
+["朋友突然告诉你一个好消息，你会？",
+"顺便追问事情背后还有什么新进展","帮对方想想接下来可以怎么做","立刻表达开心，和对方一起庆祝","留意对方说这件事时的情绪","真心替对方高兴，并认真回应"],
+["如果要给自己的房间添置一件东西，你会？",
+"选择一件有新意、没见过的东西","考虑尺寸、功能和摆放位置","问问朋友哪个更好看","选择让自己感觉舒服的设计","考虑它会不会也方便来访的人"],
+["你在网上看到一场很有意思的讨论，会？",
+"顺着话题继续了解相关内容","先理清不同观点的逻辑","加入讨论，和大家交流","注意讨论中不同人的情绪","试着理解每个人为什么这样想"],
+["如果今天必须独自度过，你更可能？",
+"去体验一件以前没做过的事","安排好一天的节奏","找机会和别人线上聊聊天","享受安静、不被打扰的时光","给重要的人发消息问候一下"],
+["当你看到一张很美的风景照，你会？",
+"想知道这是哪里，甚至想亲自去看看","保存下来，规划以后去的时间","分享给朋友，一起讨论","沉浸在照片营造的感觉里","想起某个也会喜欢这片风景的人"],
+["遇到一个需要多人合作的小任务，你会？",
+"提出一些不一样的解决方法","把任务分清楚，安排好顺序","主动和大家沟通协调","留意合作过程中的气氛","关注每个人是否都能参与进来"],
+["你在路上偶然听到一首陌生的歌，会？",
+"马上搜索歌名，看看歌手还有什么作品","记下歌名，之后有空再听","分享给朋友问问他们听过没有","留意旋律带给自己的感觉","想到这首歌适不适合分享给某个人"],
+["一个朋友最近变得不太爱说话，你会？",
+"找个机会和对方聊聊最近的新鲜事","先观察一段时间，再判断情况","主动约对方出来走走","注意对方细微的情绪变化","认真询问对方是不是遇到了什么"],
+["你需要为自己买一件日常用品，你会？",
+"看看有没有新款或特别的设计","比较参数、价格和实用性","问问朋友有没有推荐","选择看着顺眼、用着舒服的","考虑家人或身边的人是否也能使用"],
+["突然有一个下午不用处理任何事情，你会？",
+"探索一个一直好奇但没尝试的东西","处理一些积累的小事","找人见面或聊天","听音乐、发呆，让自己放松","和在意的人分享这段空闲时间"],
+["当你来到一个陌生城市，最想做的是？",
+"探索不在常规攻略里的地方","先规划好路线和交通","认识当地的人，感受城市生活","慢慢观察街道和生活氛围","寻找适合和朋友一起体验的地方"],
+["如果你要给朋友准备生日惊喜，你会？",
+"设计一个出乎意料的新点子","提前安排好每个环节","邀请大家一起参与","关注细节和整体氛围","根据朋友的喜好认真准备"],
+["当一件事情没有按预期发展，你会？",
+"把它看作尝试另一种可能的机会","重新分析问题，调整步骤","找人讨论，听听不同意见","先给自己一点时间消化情绪","考虑这件事对相关的人有什么影响"],
+["你发现自己最近一直重复做同一件事，会？",
+"想办法换一种新方式","优化流程，让它更有效率","找个人一起做，增加乐趣","思考自己是不是有些疲惫","看看有没有人需要自己的帮助"],
+["看到一件设计很巧妙的小物件，你会？",
+"好奇它还有没有其他有趣用途","研究它的结构和功能","拍下来发给朋友看","欣赏它的美感和细节","想到某个人可能会喜欢它"],
+["当别人向你征求意见时，你更倾向于？",
+"提供一些不同寻常的新思路","帮对方梳理利弊和步骤","和对方多聊一聊，交换想法","先理解对方真正的感受","站在对方的处境里认真考虑"],
+["如果有机会学习一项新技能，你会？",
+"选择最让自己好奇的那一项","制定学习计划，按进度完成","找同伴一起学习","选择自己真正喜欢的方向","想想学会后能不能帮助到别人"],
+["当你和朋友一起出门时，你通常会？",
+"提议去一些没去过的地方","提前确认时间和路线","负责活跃气氛，让大家玩得开心","关注大家是不是玩得舒服","照顾不同人的需求和想法"],
+["一天结束时，你最容易记住什么？",
+"今天遇到的新鲜事","今天完成了哪些事情","今天和谁聊得很开心","今天某个特别的瞬间或感受","今天谁给了自己温暖，或自己帮助了谁"],
+["如果有一整天可以完全按照自己的想法生活，你会？",
+"安排一次从未尝试过的体验","把一直想做的事情按顺序完成","邀请喜欢的人一起度过","留给自己喜欢的氛围和小确幸","把时间分给对自己重要的人"]
+];
+
+/* 将题目整理成统一结构 */
+const QUESTIONS=RAW_QUESTIONS.map(row=>({
+  q:row[0],
+  a:row.slice(1).map((text,index)=>({
+    text,
+    primary:ORDER[index]
+  }))
+}));
+
+/* =====================================================
+   3. 十种人格类型
+===================================================== */
+const ARCHETYPES={
+ "explore-order":{
+  name:"自由规划师",emoji:"🧭",
+  slogan:"脑子里装着地图，心里却永远留着一条新路线。",
+  description:"你既有探索新事物的好奇心，也有把想法落到现实的能力。你不喜欢生活一成不变，但也不会完全放任自己随波逐流。比起毫无目的地忙碌，你更喜欢带着一点方向感去体验生活。你可以认真规划一件感兴趣的事，也能在计划之外发现新的乐趣。",
+  strength:"你擅长把好奇心转化成实际行动。面对新事物，你既愿意尝试，也会考虑现实条件，能在自由和效率之间寻找平衡。",
+  blindspot:"有时你可能因为想把事情安排得更好而迟迟不开始，也可能在计划和新鲜感之间反复摇摆。偶尔允许自己不带目的地体验，也是一种能力。",
+  tags:["有方向的冒险家","行动派","独立思考","灵活而有序"],
+  message:"愿你一直保留探索世界的好奇，也拥有安排自己人生的底气。"
+ },
+ "explore-social":{
+  name:"灵感引力体",emoji:"✨",
+  slogan:"哪里有新鲜事，哪里就有你的好奇心和笑声。",
+  description:"你容易被新鲜事物点亮，也喜欢把这种兴奋传递给身边的人。一个新地点、一场临时起意的活动、一个从未聊过的话题，都可能成为你开启快乐的一扇门。你不太喜欢生活一直重复同样的轨迹，更愿意在体验和交流中不断收集灵感。",
+  strength:"你有很强的好奇心和感染力，容易带动气氛，也能让普通的日常变得有意思。你愿意迈出第一步，为自己和别人创造新的体验。",
+  blindspot:"你可能容易被新鲜感吸引，导致兴趣切换较快；有时也会因为太想参与各种活动而消耗精力。记得给真正重要的事情留出持续投入的时间。",
+  tags:["灵感制造机","热爱体验","表达力强","气氛发动机"],
+  message:"别急着变得循规蹈矩，你眼里的世界本来就值得多看几眼。"
+ },
+ "explore-feel":{
+  name:"月光漫游者",emoji:"🌙",
+  slogan:"一边探索世界，一边收藏那些说不清的心动瞬间。",
+  description:"你对世界有着温柔又特别的好奇。你愿意走进陌生的地方，也会注意那些容易被忽略的细节。你可能会因为一段旋律、一家小店、一场雨，突然对某个瞬间产生很深的感受。你不只是追求新鲜刺激，而是希望每一次体验都能留下属于自己的印记。",
+  strength:"你拥有丰富的感受力和想象力，能从普通生活中发现特别之处。你的观察往往细腻，也容易形成独特的审美和表达。",
+  blindspot:"你有时可能想得太多，容易沉浸在自己的感受里；面对现实任务时，也可能因为追求感觉而忽略实际安排。试着把灵感落到行动上。",
+  tags:["浪漫观察者","感受力丰富","审美在线","精神世界丰盛"],
+  message:"愿你继续保持敏感和好奇，因为那些细小的心动，正是生活送给你的礼物。"
+ },
+ "explore-connect":{
+  name:"好奇共鸣者",emoji:"🪁",
+  slogan:"世界这么大，你想去看看，也想带重要的人一起看看。",
+  description:"你喜欢新鲜事物，也很在意体验能否与别人产生连接。你可能会在发现一家新店时想到某位朋友，在看到一个有趣的活动时想邀请熟悉的人同行。对你来说，探索并不一定是独自完成的旅程，与人分享发现会让体验更加完整。",
+  strength:"你善于发现共同兴趣，也愿意主动创造交流机会。你能把个人体验转化成分享，让关系在轻松自然的互动中变得更亲近。",
+  blindspot:"有时你可能太习惯考虑别人是否也喜欢，而忽略自己真正想要什么。记得有些体验不需要分享，也不需要得到回应，只属于你自己。",
+  tags:["分享型探索者","有趣的同行者","善于连接","热情真诚"],
+  message:"愿你在探索世界的路上，遇见有趣的人，也始终记得自己的方向。"
+ },
+ "order-social":{
+  name:"温暖组织者",emoji:"☀️",
+  slogan:"你负责把事情安排妥当，也负责让大家玩得开心。",
+  description:"你既有条理，也不缺少与人互动的热情。你可能是朋友出行时那个会提前确认时间、地点和路线的人，也可能是在大家犹豫不决时主动提出方案的人。你希望事情顺利推进，但并不意味着你只在意结果。",
+  strength:"你有不错的组织能力和沟通意识，既能推动事情落地，也能照顾团队的互动氛围。别人往往容易觉得和你一起做事很安心。",
+  blindspot:"你可能不知不觉承担了太多安排和协调工作，甚至习惯替别人考虑周全。别忘了，你也可以放心地把一部分事情交给别人。",
+  tags:["靠谱担当","团队润滑剂","执行力","热情大方"],
+  message:"你不必每次都做那个安排一切的人，有时也可以安心做一个被照顾的人。"
+ },
+ "order-feel":{
+  name:"安静掌舵者",emoji:"🪞",
+  slogan:"外表平静，内心有序；你知道自己想把生活开往哪里。",
+  description:"你更喜欢有节奏、有边界的生活方式。面对事情，你通常会先观察、整理，再决定怎么行动。你并不是缺少感受，而是更习惯先把自己的状态安顿好。你不一定喜欢成为人群中的焦点，但往往有自己清晰的判断。",
+  strength:"你善于观察和整理信息，能够在复杂环境中保持相对稳定。你做决定时通常不会只凭一时冲动，也懂得保护自己的节奏。",
+  blindspot:"有时你可能过于谨慎，担心打破现有秩序；也可能因为习惯独自消化情绪，而让别人难以了解你的真实想法。适当表达需求，会让关系更轻松。",
+  tags:["沉稳清醒","观察入微","自我管理","内心有秩序"],
+  message:"不必为了迎合外界而改变自己的节奏，你的稳定本身就是一种力量。"
+ },
+ "order-connect":{
+  name:"温柔定心石",emoji:"🪴",
+  slogan:"你总能把细节安排妥当，也让身边的人感到踏实。",
+  description:"你是一个重视稳定和关系的人。你可能会记得朋友的习惯，提前考虑出行中的小细节，也会在别人需要时默默提供帮助。你不一定喜欢高调表达，但你的在意常常体现在行动里。",
+  strength:"你可靠、细心，善于把关心落实到具体行动。你能让生活和关系都保持一定的稳定感，也容易成为别人愿意信赖的人。",
+  blindspot:"你可能习惯把别人的需求放在前面，觉得自己多做一点没关系。时间久了，容易忽略自己的疲惫。照顾别人之前，也要给自己留位置。",
+  tags:["细节守护者","可靠温柔","责任感","长期主义"],
+  message:"你给别人带来的安心很珍贵，但也请记得，自己同样值得被认真照顾。"
+ },
+ "social-feel":{
+  name:"氛围收藏家",emoji:"🎐",
+  slogan:"你记得的不只是发生了什么，还有当时空气里的感觉。",
+  description:"你既能感受到人与人互动的乐趣，也很容易捕捉环境里的微妙变化。一次聚会是否舒服、一句话背后的情绪、一首歌带来的回忆，都可能被你悄悄记住。你不只是喜欢热闹，更在意交流有没有温度。",
+  strength:"你有不错的情绪感知和互动能力，能让交流更有温度。你善于捕捉细节，也容易创造让人愿意记住的相处体验。",
+  blindspot:"你有时可能太在意现场气氛，容易受到他人情绪影响；也可能为了维持和谐而压下自己的真实想法。关系不需要每一刻都完美。",
+  tags:["气氛感知者","细腻有趣","情绪雷达","记忆收藏家"],
+  message:"愿你继续感受生活的细节，也允许自己偶尔不必照顾所有人的情绪。"
+ },
+ "social-connect":{
+  name:"人间连接器",emoji:"🧡",
+  slogan:"你让陌生的距离变短，让普通的日子多一点温度。",
+  description:"你很容易从人与人的互动中获得能量，也重视关系里的真诚和回应。你可能愿意主动开启话题，记住别人说过的小事，也会在适当的时候给出关心。你擅长让人感到被看见，也愿意成为连接彼此的那个人。",
+  strength:"你有亲和力，也有理解他人的意愿。你能主动创造交流机会，让关系不至于停留在表面。你的热情往往能给周围的人带来积极感受。",
+  blindspot:"你可能太容易回应别人的期待，甚至把维持关系当成自己的责任。记住，真正舒服的连接不需要你一直主动，也不需要你时刻在线。",
+  tags:["关系连接者","亲和力","共情力","真诚热情"],
+  message:"你不需要连接所有人，只要珍惜那些愿意与你双向奔赴的人。"
+ },
+ "feel-connect":{
+  name:"心灵译者",emoji:"🕊️",
+  slogan:"你不一定说很多，但常常能听懂别人没说出口的话。",
+  description:"你对情绪和关系都有较高的敏感度。你可能会注意到别人语气中的变化，也会认真思考一句话背后的真实感受。你不一定喜欢把自己的情绪放在台面上，但很愿意理解他人的处境。",
+  strength:"你有细腻的观察力和共情能力，能够留意到别人容易忽略的情绪信号。你重视真诚，也愿意认真对待重要关系。",
+  blindspot:"你可能容易替别人承担情绪，反复琢磨对方的言行；有时甚至会把没有说出口的事情也揽到自己身上。理解别人很重要，保护自己的感受同样重要。",
+  tags:["情绪翻译官","温柔敏锐","善于倾听","深度连接"],
+  message:"愿你有理解别人的温柔，也有不必理解所有人的自由。"
+ }
+};
+
+/* =====================================================
+   4. 答题流程
+===================================================== */
+let currentQuestion=0;
+let answers=new Array(QUESTIONS.length).fill(null);
+
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function startQuiz(){
+  currentQuestion=0;
+  answers=new Array(QUESTIONS.length).fill(null);
+  renderQuestion();
+  showPage("quizPage");
+}
+function renderQuestion(){
+  const q=QUESTIONS[currentQuestion];
+  const total=QUESTIONS.length;
+  const completed=answers.filter(a=>a!==null).length;
+  document.getElementById("questionCounter").textContent=
+    `QUESTION ${String(currentQuestion+1).padStart(2,"0")} / ${total}`;
+  document.getElementById("progressText").textContent=
+    `已完成 ${Math.round(completed/total*100)}%`;
+  document.getElementById("progressBar").style.width=
+    `${completed/total*100}%`;
+  document.getElementById("questionNumber").textContent=
+    `NO. ${String(currentQuestion+1).padStart(2,"0")}`;
+  document.getElementById("questionTitle").textContent=q.q;
+
+  const container=document.getElementById("options");
+  container.innerHTML="";
+  q.a.forEach((answer,index)=>{
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="option"+(answers[currentQuestion]===index?" selected":"");
+    const letter=document.createElement("span");
+    letter.className="option-letter";
+    letter.textContent=String.fromCharCode(65+index);
+    const text=document.createElement("span");
+    text.textContent=answer.text;
+    btn.append(letter,text);
+    btn.addEventListener("click",()=>{
+      answers[currentQuestion]=index;
+      renderQuestion();
+    });
+    container.appendChild(btn);
+  });
+
+  document.getElementById("prevBtn").disabled=currentQuestion===0;
+  const next=document.getElementById("nextBtn");
+  next.disabled=answers[currentQuestion]===null;
+  next.textContent=currentQuestion===total-1?"生成我的隐藏图鉴 ✦":"下一题 →";
+}
+function previousQuestion(){
+  if(currentQuestion>0){currentQuestion--;renderQuestion();}
+}
+function nextQuestion(){
+  if(answers[currentQuestion]===null)return;
+  if(currentQuestion<QUESTIONS.length-1){
+    currentQuestion++;renderQuestion();return;
+  }
+  if(answers.some(a=>a===null)){
+    alert("还有题目没有完成，请检查后再生成结果。");return;
+  }
+  calculateResult();
+}
+
+/* =====================================================
+   5. 新版五维加权计分
+   每个答案都会影响五个维度，而不是只给一个维度加分。
+
+   每题所有维度先获得基础分1；
+   选项对应的主要维度额外+2；
+   再根据题目编号和选项位置，给一个相关维度+1。
+
+   这样每个维度都有基础得分，不会出现100%与0%的极端结果。
+   最终指数以五维平均值为中心，映射到25-75之间。
+===================================================== */
+function calculateScores(){
+  const raw={explore:0,order:0,social:0,feel:0,connect:0};
+  const contributions=QUESTIONS.map((q,index)=>{
+    const choiceIndex=answers[index];
+    const primary=q.a[choiceIndex].primary;
+    const primaryIndex=ORDER.indexOf(primary);
+
+    // 每题第二个相关维度按题目编号轮换，避免所有题都只强化一个方向
+    const secondaryIndex=(primaryIndex+1+(index%4))%5;
+    const secondary=ORDER[secondaryIndex];
+
+    // 每个维度都获得基础分
+    ORDER.forEach(key=>raw[key]+=1);
+
+    // 主要倾向 +2，相关倾向 +1
+    raw[primary]+=2;
+    raw[secondary]+=1;
+
+    return {
+      questionIndex:index,
+      choiceIndex,
+      primary,
+      secondary,
+      weights:Object.fromEntries(ORDER.map(key=>[
+        key,1+(key===primary?2:0)+(key===secondary?1:0)
+      ]))
+    };
+  });
+
+  const average=ORDER.reduce((sum,key)=>sum+raw[key],0)/5;
+  const scores={};
+
+  ORDER.forEach(key=>{
+    // 以50为中位基准，限制在25-75，避免出现0或100的极端分数
+    scores[key]=Math.max(25,Math.min(75,
+      Math.round(50+(raw[key]-average)*2)
+    ));
+  });
+
+  return {raw,scores,contributions};
+}
+
+/* =====================================================
+   6. 根据用户真实选择生成五维分析
+   每个维度至少提取两道题。
+===================================================== */
+function getDimensionEvidence(key,contributions){
+  return contributions
+    .map((item,index)=>({
+      ...item,
+      score:item.weights[key],
+      question:QUESTIONS[index].q,
+      answer:QUESTIONS[index].a[item.choiceIndex].text
+    }))
+    .sort((a,b)=>b.score-a.score || a.questionIndex-b.questionIndex)
+    .slice(0,2);
+}
+
+function getDimensionInterpretation(key,item){
+  const interpretations={
+    explore:[
+      "你在这个情境中选择了主动接触新事物的方式，说明你愿意给未知留出空间。",
+      "这个选择体现出你对新鲜体验的开放程度。你不一定每次都会冒险，但通常愿意先看看还有什么可能。",
+      "你更容易从变化和发现中获得动力，这可能是你探索欲的一种表现。"
+    ],
+    order:[
+      "你倾向于先确认信息或安排步骤，说明你在处理事情时会考虑秩序和可控性。",
+      "这个选择体现了你对效率和确定性的重视。提前理清思路，可能会让你更安心。",
+      "你会留意事情是否有清晰的安排，这反映出你对节奏和规划的偏好。"
+    ],
+    social:[
+      "你的选择包含了主动交流或分享的倾向，说明人与人的互动可能会给你带来乐趣。",
+      "你愿意通过交流获得信息或创造体验，这体现了你对社交互动的开放程度。",
+      "你会考虑如何与别人一起参与这件事，说明互动本身对你也有吸引力。"
+    ],
+    feel:[
+      "你在这个情境中留意了感受、氛围或细节，说明你不只关注事情本身，也会注意体验过程。",
+      "这个选择体现了你对环境和情绪变化的关注。某些细节可能比表面结果更容易被你记住。",
+      "你会给自己的感受留出位置，这可能说明你比较在意体验带来的情绪反馈。"
+    ],
+    connect:[
+      "你的选择考虑到了他人的感受或需要，说明你在做决定时会把关系因素纳入考虑。",
+      "你会想到别人可能有什么感受，这体现了你对关系互动的关注。",
+      "你倾向于让自己的选择与身边的人产生连接，这可能是你重视关系的一种表现。"
+    ]
+  };
+  const list=interpretations[key];
+  // 不同题目轮换解释措辞，避免两条分析完全相同
+  return list[item.questionIndex%list.length];
+}
+
+function renderDimensionAnalysis(contributions){
+  const container=document.getElementById("dimensionAnalysis");
+  container.innerHTML="";
+
+  ORDER.forEach(key=>{
+    const dimension=DIMENSIONS[key];
+    const evidence=getDimensionEvidence(key,contributions);
+    const block=document.createElement("div");
+    block.className="analysis-box";
+
+    const title=document.createElement("div");
+    title.className="analysis-title";
+    title.textContent=dimension.name+" · 你的实际答题依据";
+    block.appendChild(title);
+
+    evidence.forEach(item=>{
+      const row=document.createElement("div");
+      row.className="analysis-item";
+      row.innerHTML=
+        `<strong>第${item.questionIndex+1}题</strong>，你选择了「${escapeHTML(item.answer)}」。${escapeHTML(getDimensionInterpretation(key,item))}`;
+      block.appendChild(row);
+    });
+
+    container.appendChild(block);
+  });
+}
+
+/* =====================================================
+   7. 人格结果匹配与个性化描述
+===================================================== */
+function getArchetype(scores){
+  const ranked=[...ORDER].sort((a,b)=>
+    scores[b]-scores[a] || ORDER.indexOf(a)-ORDER.indexOf(b)
+  );
+  const top=ranked.slice(0,2);
+
+  // 按固定维度顺序生成组合键，避免键名不匹配
+  const key=ORDER.filter(k=>top.includes(k)).join("-");
+  return {key,ranked,top,result:ARCHETYPES[key]||ARCHETYPES["explore-order"]};
+}
+
+function makePersonalDescription(result,scores){
+  const ranked=[...ORDER].sort((a,b)=>scores[b]-scores[a]);
+  const strongest=ranked[0];
+  const second=ranked[1];
+  const lowest=ranked[4];
+
+  return result.description+
+    ` 从这次答题来看，你的「${DIMENSIONS[strongest].name}」倾向相对突出，`+
+    `其次是「${DIMENSIONS[second].name}」。`+
+    `而「${DIMENSIONS[lowest].name}」在这次结果中相对低调。`+
+    `这并不代表你缺少这一特质，只是说明它可能不是你最常优先采用的处理方式。`;
+}
+
+function makePersonalStrength(result,scores){
+  const strongest=[...ORDER].sort((a,b)=>scores[b]-scores[a]).slice(0,2);
+  return result.strength+
+    ` 结合你的答题表现，${DIMENSIONS[strongest[0]].name}和${DIMENSIONS[strongest[1]].name}是这次画像中比较突出的两个方向。`;
+}
+
+function makePersonalBlindspot(result,scores){
+  const lowest=[...ORDER].sort((a,b)=>scores[a]-scores[b])[0];
+  return result.blindspot+
+    ` 从这次结果看，${DIMENSIONS[lowest].name}是相对不突出的维度。遇到相关情境时，可以试着有意识地给自己另一种选择。`;
+}
+
+/* =====================================================
+   8. 渲染结果
+===================================================== */
+function escapeHTML(value){
+  return String(value).replace(/[&<>"']/g,char=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[char]);
+}
+
+function renderResult(result,scores,contributions,ranked){
+  document.getElementById("resultEmoji").textContent=result.emoji;
+  document.getElementById("resultName").textContent=result.name;
+  document.getElementById("resultSlogan").textContent=result.slogan;
+  document.getElementById("resultDescription").textContent=
+    makePersonalDescription(result,scores);
+  document.getElementById("resultStrength").textContent=
+    makePersonalStrength(result,scores);
+  document.getElementById("resultBlindspot").textContent=
+    makePersonalBlindspot(result,scores);
+  document.getElementById("resultMessage").textContent=result.message;
+
+  const list=document.getElementById("dimensionList");
+  list.innerHTML="";
+
+  ORDER.forEach(key=>{
+    const value=scores[key];
+    const item=document.createElement("div");
+    item.className="dimension-item";
+
+    const head=document.createElement("div");
+    head.className="dimension-head";
+    const name=document.createElement("span");
+    name.className="dimension-name";
+    name.textContent=DIMENSIONS[key].name;
+    const score=document.createElement("span");
+    score.className="dimension-value";
+    score.textContent=`${value} / 100`;
+    head.append(name,score);
+
+    const track=document.createElement("div");
+    track.className="dimension-track";
+    const fill=document.createElement("div");
+    fill.className="dimension-fill";
+    fill.style.width=value+"%";
+    track.appendChild(fill);
+
+    const desc=document.createElement("div");
+    desc.className="dimension-desc";
+    desc.textContent=value>=58?DIMENSIONS[key].high:
+      value<=42?DIMENSIONS[key].low:DIMENSIONS[key].desc;
+
+    item.append(head,track,desc);
+    list.appendChild(item);
+  });
+
+  const tags=document.getElementById("resultTags");
+  tags.innerHTML="";
+  result.tags.forEach(value=>{
+    const span=document.createElement("span");
+    span.className="tag";
+    span.textContent=value;
+    tags.appendChild(span);
+  });
+
+  renderDimensionAnalysis(contributions);
+
+  // 挑选用户实际作答的四条记录，作为结果补充
+  const evidence=document.getElementById("evidenceList");
+  evidence.innerHTML="";
+  const chosen=[...contributions]
+    .sort((a,b)=>b.weights[a.primary]-a.weights[b.primary])
+    .slice(0,4);
+
+  chosen.forEach(item=>{
+    const index=item.questionIndex;
+    const div=document.createElement("div");
+    div.className="evidence";
+    const q=document.createElement("div");
+    q.className="evidence-q";
+    q.textContent=`第${index+1}题 · ${QUESTIONS[index].q}`;
+    const a=document.createElement("div");
+    a.className="evidence-a";
+    a.textContent=`你的选择：「${QUESTIONS[index].a[item.choiceIndex].text}」`;
+    div.append(q,a);
+    evidence.appendChild(div);
+  });
+
+  window.currentResultText=
+`我的隐藏人格是：${result.emoji} ${result.name}
+
+${result.slogan}
+
+${makePersonalDescription(result,scores)}
+
+【五维人格画像】
+${ORDER.map(key=>`${DIMENSIONS[key].name}：${scores[key]}/100`).join("\n")}
+
+【隐藏优势】
+${makePersonalStrength(result,scores)}
+
+【偶尔需要留意】
+${makePersonalBlindspot(result,scores)}
+
+【专属寄语】
+${result.message}
+
+快来测测你的隐藏人格吧！`;
+}
+
+function calculateResult(){
+  try{
+    if(QUESTIONS.length!==40){
+      throw new Error("题目数量不是40道，当前为"+QUESTIONS.length);
+    }
+    if(answers.length!==40 || answers.some(a=>a===null)){
+      alert("请先完成全部40道题。");return;
+    }
+    const {scores,contributions}=calculateScores();
+    const matched=getArchetype(scores);
+    renderResult(matched.result,scores,contributions,matched.ranked);
+    showPage("resultPage");
+  }catch(error){
+    console.error("生成结果时发生错误：",error);
+    alert("生成结果时出现问题，请打开浏览器控制台查看错误。");
+  }
+}
+
+/* =====================================================
+   9. 复制分享、重新测试
+===================================================== */
+async function shareResult(){
+  const text=window.currentResultText||"";
+  if(!text){alert("请先完成测试，再分享结果。");return;}
+  try{
+    if(navigator.share){
+      await navigator.share({title:"我的隐藏人格图鉴",text});
+    }else if(navigator.clipboard&&window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      alert("人格图鉴已复制，快去分享给朋友吧！");
+    }else{
+      fallbackCopy(text);
+    }
+  }catch(error){
+    if(error.name!=="AbortError")fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  const textarea=document.createElement("textarea");
+  textarea.value=text;
+  textarea.style.position="fixed";
+  textarea.style.opacity="0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  try{
+    const ok=document.execCommand("copy");
+    alert(ok?"人格图鉴已复制，快去分享给朋友吧！":"复制失败，请手动复制结果。");
+  }catch(e){alert("复制失败，请手动复制结果。");}
+  document.body.removeChild(textarea);
+}
+function restartQuiz(){
+  if(confirm("确定重新开始测试吗？当前测试结果不会保留。"))startQuiz();
+}
+
+/* =====================================================
+   10. 初始化自检
+===================================================== */
+(function init(){
+  console.log("隐藏人格图鉴初始化检查");
+  console.log("题目数量：",QUESTIONS.length);
+  console.log("人格数量：",Object.keys(ARCHETYPES).length);
+
+  if(QUESTIONS.length!==40){
+    console.error("错误：题目数量不是40道！");
+  }
+  if(Object.keys(ARCHETYPES).length!==10){
+    console.error("错误：人格类型不是10种！");
+  }
+  QUESTIONS.forEach((q,index)=>{
+    if(!q.q||q.a.length!==5){
+      console.error(`第${index+1}题数据异常`);
+    }
+  });
+})();
+</script>
+</body>
+</html>
